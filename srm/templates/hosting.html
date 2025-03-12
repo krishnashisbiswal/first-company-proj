@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="dashboard">
+
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fas fa-cube"></i>
+                <span>ServiceHub</span>
+            </div>
+            <ul class="nav-links">
+                <li class="active"><a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="{% url 'domains' %}"><i class="fas fa-globe"></i> Domains</a></li>
+                <li><a href="{% url 'hosting' %}"><i class="fas fa-server"></i> Hosting</a></li>
+                <li><a href="{% url 'ssl' %}"><i class="fas fa-shield-alt"></i> SSL</a></li>
+                <li><a href="{% url 'seo' %}"><i class="fas fa-chart-line"></i> SEO</a></li>
+                <li><a href="{% url 'licenses' %}"><i class="fas fa-key"></i> Licenses</a></li>
+            </ul>
+        </nav>
+        
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search hosting plans...">
+                </div>
+                <div class="user-profile">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <img src="https://ui-avatars.com/api/?name=John+Doe" alt="Profile" class="avatar">
+                </div>
+            </header>
+
+            <div class="service-header">
+                <h2>Hosting Management</h2>
+                <button class="add-client-btn" data-service="hosting">
+                    <i class="fas fa-plus"></i> Add New Hosting
+                </button>
+            </div>
+
+            <div class="service-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Package Name</th>
+                            <th>Client</th>
+                            <th>Provider</th>
+                            <th>Renewal Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hosting-table-body"></tbody>
+                </table>
+            </div>
+
+            <!-- Add New Hosting Modal -->
+            <div class="modal" id="addClientModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Add New Hosting</h2>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addHostingForm">
+                            <div class="form-group">
+                                <label for="packageName">Package Name</label>
+                                <input type="text" id="packageName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="clientName">Client Name</label>
+                                <input type="text" id="clientName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="provider">Provider</label>
+                                <input type="text" id="provider" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="renewalDate">Renewal Date</label>
+                                <input type="date" id="renewalDate" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">Add Hosting</button>
+                                <button type="button" class="btn-secondary close-modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        // Hosting-specific JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            const mockHosting = [
+                { id: '1', name: 'Business Pro', client: 'John Doe', details: 'DigitalOcean', expiryDate: '2024-05-10', status: 'Active' },
+                { id: '2', name: 'Enterprise', client: 'Jane Smith', details: 'AWS', expiryDate: '2024-08-15', status: 'Active' },
+                { id: '3', name: 'Developer', client: 'Tech Corp', details: 'Heroku', expiryDate: '2024-04-20', status: 'Expiring Soon' }
+            ];
+
+            const tableBody = document.getElementById('hosting-table-body');
+            mockHosting.forEach(hosting => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="service-name">
+                            <i class="fas fa-server"></i>
+                            <span>${hosting.name}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="client-info">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(hosting.client)}&background=random" alt="${hosting.client}" class="client-avatar">
+                            <span>${hosting.client}</span>
+                        </div>
+                    </td>
+                    <td>${hosting.details}</td>
+                    <td>
+                        <div class="expiry-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>${hosting.expiryDate}</span>
+                        </div>
+                    </td>
+                    <td><span class="status-badge ${hosting.status.toLowerCase().replace(' ', '-')}">${hosting.status}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn edit" data-id="${hosting.id}" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete" data-id="${hosting.id}" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Modal Management
+            const modal = document.getElementById('addClientModal');
+            const addButton = document.querySelector('.add-client-btn');
+            const closeButtons = document.querySelectorAll('.close-modal');
+            const form = document.getElementById('addHostingForm');
+
+            addButton.addEventListener('click', () => {
+                modal.classList.add('active');
+            });
+
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    modal.classList.remove('active');
+                });
+            });
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                // Handle form submission here
+                modal.classList.remove('active');
+                form.reset();
+            });
+
+            // Search functionality
+            const searchInput = document.querySelector('.search-bar input');
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = tableBody.querySelectorAll('tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+{%endblock%}

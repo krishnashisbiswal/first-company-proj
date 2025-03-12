@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+<div class="dashboard">
+    <nav class="sidebar">
+        <div class="logo">
+            <i class="fas fa-cube"></i>
+            <span>ServiceHub</span>
+        </div>
+        <ul class="nav-links">
+            <li class="active"><a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="{% url 'domains' %}"><i class="fas fa-globe"></i> Domains</a></li>
+            <li><a href="{% url 'hosting' %}"><i class="fas fa-server"></i> Hosting</a></li>
+            <li><a href="{% url 'ssl' %}"><i class="fas fa-shield-alt"></i> SSL</a></li>
+            <li><a href="{% url 'seo' %}"><i class="fas fa-chart-line"></i> SEO</a></li>
+            <li><a href="{% url 'licenses' %}"><i class="fas fa-key"></i> Licenses</a></li>
+        </ul>
+    </nav>
+        
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search...">
+                </div>
+                <div class="user-profile">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <img src="https://ui-avatars.com/api/?name=John+Doe" alt="Profile" class="avatar">
+                </div>
+            </header>
+
+            <div class="dashboard-grid">
+                <div class="card overview-card">
+                    <h3>Service Overview</h3>
+                    <canvas id="servicesChart"></canvas>
+                </div>
+
+                <div class="card stats-card">
+                    <h3>Quick Stats</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <i class="fas fa-globe"></i>
+                            <div class="stat-details">
+                                <span class="stat-value">24</span>
+                                <span class="stat-label">Active Domains</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-server"></i>
+                            <div class="stat-details">
+                                <span class="stat-value">12</span>
+                                <span class="stat-label">Hosting Plans</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <div class="stat-details">
+                                <span class="stat-value">18</span>
+                                <span class="stat-label">SSL Certificates</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div class="stat-details">
+                                <span class="stat-value">5</span>
+                                <span class="stat-label">Expiring Soon</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card renewals-card">
+                    <h3>Upcoming Renewals</h3>
+                    <div class="renewals-list" id="renewalsList"></div>
+                </div>
+
+                <div class="card expenses-card">
+                    <h3>Monthly Expenses</h3>
+                    <canvas id="expensesChart"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="src/main.ts" type="module"></script>
+</body>
+</html>
+{% endblock %}

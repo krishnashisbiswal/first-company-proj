@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}Domains{% endblock %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'domains.js' %}"></script>
+
+<div class="dashboard">
+
+    <nav class="sidebar">
+        <div class="logo">
+            <i class="fas fa-cube"></i>
+            <span>ServiceHub</span>
+        </div>
+        <ul class="nav-links">
+            <li class="active"><a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="{% url 'domains' %}"><i class="fas fa-globe"></i> Domains</a></li>
+            <li><a href="{% url 'hosting' %}"><i class="fas fa-server"></i> Hosting</a></li>
+            <li><a href="{% url 'ssl' %}"><i class="fas fa-shield-alt"></i> SSL</a></li>
+            <li><a href="{% url 'seo' %}"><i class="fas fa-chart-line"></i> SEO</a></li>
+            <li><a href="{% url 'licenses' %}"><i class="fas fa-key"></i> Licenses</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search domains...">
+            </div>
+            <div class="user-profile">
+                <div class="notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <img src="https://ui-avatars.com/api/?name=John+Doe" alt="Profile" class="avatar">
+            </div>
+        </header>
+
+        <div class="service-header">
+            <h2>Domain Management</h2>
+            <button class="add-client-btn" data-service="domain">
+                <i class="fas fa-plus"></i> Add New Domain
+            </button>
+        </div>
+
+        <div class="service-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Domain Name</th>
+                        <th>Client</th>
+                        <th>Registrar</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="domains-table-body"></tbody>
+            </table>
+        </div>
+
+        <!-- Add New Domain Modal -->
+        <div class="modal" id="addClientModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Add New Domain</h2>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="addDomainForm">
+                        <div class="form-group">
+                            <label for="domainName">Domain Name</label>
+                            <input type="text" id="domainName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientName">Client Name</label>
+                            <input type="text" id="clientName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registrar">Registrar</label>
+                            <input type="text" id="registrar" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select id="status" required>
+                                <option value="Active">Active</option>
+                                <option value="Critical">Critical</option>
+                                <option value="Expiring Soon">Expiring Soon</option>
+                                <option value="Expired">Expired</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="expiryDate">Expiry Date</label>
+                            <input type="date" id="expiryDate" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Add Domain</button>
+                            <button type="button" class="btn-secondary close-modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // Domain-specific JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+            const mockDomains = [
+                { id: '1', name: 'example.com', client: 'John Doe', details: 'GoDaddy', expiryDate: '2024-06-15', status: 'Active' },
+                { id: '2', name: 'client-site.com', client: 'Jane Smith', details: 'Namecheap', expiryDate: '2024-07-20', status: 'Expiring Soon' },
+                { id: '3', name: 'tech-hub.io', client: 'Tech Corp', details: 'Google Domains', expiryDate: '2024-08-30', status: 'Active' }
+                
+            ];
+
+        const tableBody = document.getElementById('domains-table-body');
+        mockDomains.forEach(domain => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <div class="service-name">
+                        <i class="fas fa-globe"></i>
+                        <span>${domain.name}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="client-info">
+                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(domain.client)}&background=random" alt="${domain.client}" class="client-avatar">
+                        <span>${domain.client}</span>
+                    </div>
+                </td>
+                <td>${domain.details}</td>
+                <td>
+                    <div class="expiry-date">
+                        <i class="fas fa-calendar"></i>
+                        <span>${domain.expiryDate}</span>
+                    </div>
+                </td>
+                <td><span class="status-badge ${domain.status.toLowerCase().replace(' ', '-')}">${domain.status}</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="action-btn edit" data-id="${domain.id}" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete" data-id="${domain.id}" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        // Modal Management
+        const modal = document.getElementById('addClientModal');
+        const addButton = document.querySelector('.add-client-btn');
+        const closeButtons = document.querySelectorAll('.close-modal');
+        const form = document.getElementById('addDomainForm');
+
+        addButton.addEventListener('click', () => {
+            modal.classList.add('active');
+        });
+
+        closeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                modal.classList.remove('active');
+            });
+        });
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Handle form submission here
+            modal.classList.remove('active');
+            form.reset();
+        });
+
+        // Search functionality
+        const searchInput = document.querySelector('.search-bar input');
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = tableBody.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    });
+</script>
+{% for i in domains %}
+<h1>{{i.domain}}</h1>
+{% endfor %}
+</body>
+</html>
+{% endblock %}

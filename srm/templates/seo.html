@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="dashboard">
+
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fas fa-cube"></i>
+                <span>ServiceHub</span>
+            </div>
+            <ul class="nav-links">
+                <li class="active"><a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="{% url 'domains' %}"><i class="fas fa-globe"></i> Domains</a></li>
+                <li><a href="{% url 'hosting' %}"><i class="fas fa-server"></i> Hosting</a></li>
+                <li><a href="{% url 'ssl' %}"><i class="fas fa-shield-alt"></i> SSL</a></li>
+                <li><a href="{% url 'seo' %}"><i class="fas fa-chart-line"></i> SEO</a></li>
+                <li><a href="{% url 'licenses' %}"><i class="fas fa-key"></i> Licenses</a></li>
+            </ul>
+        </nav>
+        
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search SEO services...">
+                </div>
+                <div class="user-profile">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <img src="https://ui-avatars.com/api/?name=John+Doe" alt="Profile" class="avatar">
+                </div>
+            </header>
+
+            <div class="service-header">
+                <h2>SEO Service Management</h2>
+                <button class="add-client-btn" data-service="seo">
+                    <i class="fas fa-plus"></i> Add New SEO Service
+                </button>
+            </div>
+
+            <div class="service-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Website</th>
+                            <th>Client</th>
+                            <th>Package</th>
+                            <th>Renewal Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="seo-table-body"></tbody>
+                </table>
+            </div>
+
+            <!-- Add New SEO Service Modal -->
+            <div class="modal" id="addClientModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Add New SEO Service</h2>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addSEOForm">
+                            <div class="form-group">
+                                <label for="website">Website</label>
+                                <input type="text" id="website" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="clientName">Client Name</label>
+                                <input type="text" id="clientName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="package">Package</label>
+                                <input type="text" id="package" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="renewalDate">Renewal Date</label>
+                                <input type="date" id="renewalDate" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">Add SEO Service</button>
+                                <button type="button" class="btn-secondary close-modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        // SEO-specific JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            const mockSEO = [
+                { id: '1', name: 'example.com', client: 'John Doe', details: 'Premium Plan', expiryDate: '2024-06-30', status: 'Active' },
+                { id: '2', name: 'client-site.com', client: 'Jane Smith', details: 'Basic Plan', expiryDate: '2024-05-15', status: 'Expiring Soon' }
+            ];
+
+            const tableBody = document.getElementById('seo-table-body');
+            mockSEO.forEach(seo => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="service-name">
+                            <i class="fas fa-chart-line"></i>
+                            <span>${seo.name}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="client-info">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(seo.client)}&background=random" alt="${seo.client}" class="client-avatar">
+                            <span>${seo.client}</span>
+                        </div>
+                    </td>
+                    <td>${seo.details}</td>
+                    <td>
+                        <div class="expiry-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>${seo.expiryDate}</span>
+                        </div>
+                    </td>
+                    <td><span class="status-badge ${seo.status.toLowerCase().replace(' ', '-')}">${seo.status}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn edit" data-id="${seo.id}" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete" data-id="${seo.id}" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Modal Management
+            const modal = document.getElementById('addClientModal');
+            const addButton = document.querySelector('.add-client-btn');
+            const closeButtons = document.querySelectorAll('.close-modal');
+            const form = document.getElementById('addSEOForm');
+
+            addButton.addEventListener('click', () => {
+                modal.classList.add('active');
+            });
+
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    modal.classList.remove('active');
+                });
+            });
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                // Handle form submission here
+                modal.classList.remove('active');
+                form.reset();
+            });
+
+            // Search functionality
+            const searchInput = document.querySelector('.search-bar input');
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = tableBody.querySelectorAll('tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+{%endblock%}
