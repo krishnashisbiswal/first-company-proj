@@ -1,5 +1,6 @@
 from django import forms
-from .models import Domain, Hosting, License, Seo, Ssl
+from .models import *
+
 
 class DomainForm(forms.ModelForm):
     class Meta:
@@ -22,6 +23,4 @@ class SeoForm(forms.ModelForm):
         fields = ['website', 'client', 'package', 'renewal', 'status']
 
 class SslForm(forms.ModelForm):
-    class Meta:
-        model = Ssl
         fields = ['domain', 'client', 'type', 'expiry', 'status']

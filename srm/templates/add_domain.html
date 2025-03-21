@@ -3,70 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Domain</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Document</title>
 </head>
 <body>
-    <!-- Add New Domain Modal -->
-    <div class="modal" id="addClientModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add New Domain</h2>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                    <form id="addDomainForm" action="{% url 'add_domain' %}" method="post">
-                        {% csrf_token %}
-                    <div class="form-group">
-                        <label for="domainName">Domain Name:</label>
-                        <input type="text" id="domainName" name="domain" required>
-
-                    </div>
-                    <div class="form-group">
-                        <label for="clientName">Client Name:</label>
-                        <input type="text" id="clientName" name="client" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="registrar">Registrar:</label>
-                        <input type="text" id="registrar" name="registrar" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="status">Status</label>
-                        <select id="status" name="status" required>
-                            <option value="Active">Active</option>
-                            <option value="Critical">Critical</option>
-                            <option value="Expiring Soon">Expiring Soon</option>
-                            <option value="Expired">Expired</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="expiryDate">Expiry Date:</label>
-                        <input type="date" id="expiryDate" name="expiry" required>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary">Add Domain</button>
-                        <button type="button" class="btn-secondary close-modal">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    <script src="{% static 'domains.js' %}"></script>
-    <table>
-        <thead>
-            <tr>
-                <th>Domain Name</th>
-                <th>Client Name</th>
-                <th>Registrar</th>
-                <th>Status</th>
-                <th>Expiry Date</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="domains-table-body">
-        </tbody>
-    </table>
+    <h1>Add Domain</h1>
+<form method="post" action="{% url 'add_domain' %}">
+    {{ form.as_p }}
+    {% csrf_token %}
+    <button type="submit">Add Domain</button>   
+</form>
 </body>
 </html>
