@@ -3,11 +3,9 @@
 {% load static %}
 {% block content %}
 <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="{% static 'domains.js' %}"></script>
 
-<div class="dashboard">
+<div class="dashboard" style="text-align: center;">
 
     <nav class="sidebar">
         <div class="logo">
@@ -23,7 +21,7 @@
             <li><a href="{% url 'licenses' %}"><i class="fas fa-key"></i> Licenses</a></li>
         </ul>
     </nav>
-
+    
     <main class="main-content">
         <header class="top-bar">
             <div class="search-bar">
@@ -38,13 +36,13 @@
                 <img src="https://ui-avatars.com/api/?name=John+Doe" alt="Profile" class="avatar">
             </div>
         </header>
-
         <div class="service-header">
             <h2>Domain Management</h2>
-            <button class="add-client-btn" data-service="domain">
+            <button class="add-client-btn" data-service="domain" style="display: inline-block;">
                 <i class="fas fa-plus"></i> Add New Domain
             </button>
         </div>
+
 
         <div class="service-table">
             <table>
@@ -58,7 +56,43 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="domains-table-body"></tbody>
+                <tbody id="domains-table-body">
+                    {% for domain in domains %}
+                    <tr>
+                        <td>
+                            <div class="service-name">
+                                <i class="fas fa-globe"></i>
+                                <span>{{ domain.domain }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="client-info">
+                                <img src="https://ui-avatars.com/api/?name={{ domain.client|urlencode }}&background=random" alt="{{ domain.client }}" class="client-avatar">
+                                <span>{{ domain.client }}</span>
+                            </div>
+                        </td>
+                        <td>{{ domain.registrar }}</td>
+                        <td>
+                            <div class="expiry-date">
+                                <i class="fas fa-calendar"></i>
+                                <span>{{ domain.expiry|date:"Y-m-d" }}</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge 
+                            {% if domain.status|lower == "expired" %}expired{% elif domain.status|lower == "critical" %}critical{% elif domain.status|lower == "expiring soon" %}expiring-soon{% elif domain.status|lower == "active" %}active{% else %}{{ domain.status|lower }}{% endif %}">{{ domain.status|title }}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn edit" data-id="{{ domain.id }}" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete" data-id="{{ domain.id }}" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
             </table>
         </div>
 
@@ -83,15 +117,17 @@
                             <label for="registrar">Registrar</label>
                             <input type="text" id="registrar" required>
                         </div>
-                        <div class="form-group">
+                        <div>
                             <label for="status">Status</label>
-                            <select id="status" required>
-                                <option value="Active">Active</option>
+                            <br>
+                            <select id="status">
+                                <option value="active">Active</option>
                                 <option value="Critical">Critical</option>
                                 <option value="Expiring Soon">Expiring Soon</option>
                                 <option value="Expired">Expired</option>
                             </select>
                         </div>
+                        <br>
                         <div class="form-group">
                             <label for="expiryDate">Expiry Date</label>
                             <input type="date" id="expiryDate" required>
@@ -106,94 +142,105 @@
         </div>
     </main>
 </div>
-
+        <!-- Edit Domain Modal -->
+        <div class="modal" id="editDomainModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Edit Domain</h2>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="editDomainForm">
+                        <input type="hidden" id="editDomainId">
+                        <div class="form-group">
+                            <label for="editDomainName">Domain Name</label>
+                            <input type="text" id="editDomainName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editClientName">Client Name</label>
+                            <input type="text" id="editClientName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editRegistrar">Registrar</label>
+                            <input type="text" id="editRegistrar" required>
+                        </div>
+                        <div>
+                            <label for="editStatus">Status</label>
+                            <br>
+                            <select id="editStatus">
+                                <option value="active">Active</option>
+                                <option value="Critical">Critical</option>
+                                <option value="Expiring Soon">Expiring Soon</option>
+                                <option value="Expired">Expired</option>
+                            </select>
+                        </div>
+                        <br>
+                        <div class="form-group">
+                            <label for="editExpiryDate">Expiry Date</label>
+                            <input type="date" id="editExpiryDate" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Update Domain</button>
+                            <button type="button" class="btn-secondary close-modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+{% comment %} <script src="{% static 'domains.js' %}"></script> {% endcomment %}
 <script>
-    // Domain-specific JavaScript
-    document.addEventListener('DOMContentLoaded', function() {
-            const mockDomains = [
-                { id: '1', name: 'example.com', client: 'John Doe', details: 'GoDaddy', expiryDate: '2024-06-15', status: 'Active' },
-                { id: '2', name: 'client-site.com', client: 'Jane Smith', details: 'Namecheap', expiryDate: '2024-07-20', status: 'Expiring Soon' },
-                { id: '3', name: 'tech-hub.io', client: 'Tech Corp', details: 'Google Domains', expiryDate: '2024-08-30', status: 'Active' }
-                
-            ];
+    $(document).on('click', '.edit', function() {
+        const domainId = $(this).data('id');
+        const domainRow = $(this).closest('tr');
+        $('#editDomainId').val(domainId);
+        $('#editDomainName').val(domainRow.find('span').first().text());
+        $('#editClientName').val(domainRow.find('.client-info span').text());
+        $('#editRegistrar').val(domainRow.find('td').eq(2).text());
+        $('#editStatus').val(domainRow.find('td').eq(4).text());
+        $('#editExpiryDate').val(domainRow.find('td').eq(3).find('span').text());
+        $('#editDomainModal').show();
+    });
 
-        const tableBody = document.getElementById('domains-table-body');
-        mockDomains.forEach(domain => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>
-                    <div class="service-name">
-                        <i class="fas fa-globe"></i>
-                        <span>${domain.name}</span>
-                    </div>
-                </td>
-                <td>
-                    <div class="client-info">
-                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(domain.client)}&background=random" alt="${domain.client}" class="client-avatar">
-                        <span>${domain.client}</span>
-                    </div>
-                </td>
-                <td>${domain.details}</td>
-                <td>
-                    <div class="expiry-date">
-                        <i class="fas fa-calendar"></i>
-                        <span>${domain.expiryDate}</span>
-                    </div>
-                </td>
-                <td><span class="status-badge ${domain.status.toLowerCase().replace(' ', '-')}">${domain.status}</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="action-btn edit" data-id="${domain.id}" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn delete" data-id="${domain.id}" title="Delete">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            `;
-            tableBody.appendChild(row);
-        });
+    $('#editDomainForm').on('submit', function(e) {
+        e.preventDefault();
+        const domainId = $('#editDomainId').val();
+        const updatedData = {
+            domain: $('#editDomainName').val(),
+            client: $('#editClientName').val(),
+            registrar: $('#editRegistrar').val(),
+            status: $('#editStatus').val(),
+            expiry: $('#editExpiryDate').val(),
+        };
 
-        // Modal Management
-        const modal = document.getElementById('addClientModal');
-        const addButton = document.querySelector('.add-client-btn');
-        const closeButtons = document.querySelectorAll('.close-modal');
-        const form = document.getElementById('addDomainForm');
-
-        addButton.addEventListener('click', () => {
-            modal.classList.add('active');
-        });
-
-        closeButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                modal.classList.remove('active');
-            });
-        });
-
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            // Handle form submission here
-            modal.classList.remove('active');
-            form.reset();
-        });
-
-        // Search functionality
-        const searchInput = document.querySelector('.search-bar input');
-        searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const rows = tableBody.querySelectorAll('tr');
-            
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
+        $.ajax({
+            url: `/update_domain/${domainId}/`,
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(updatedData),
+            success: function(response) {
+                location.reload(); // Reload the page to see the updated data
+            },
+            error: function(xhr) {
+                alert('Error updating domain: ' + xhr.responseJSON.error);
+            }
         });
     });
+
+    $(document).on('click', '.delete', function() {
+        const domainId = $(this).data('id');
+        if (confirm('Are you sure you want to delete this domain?')) {
+            $.ajax({
+                url: `/delete_domain/${domainId}/`,
+                type: 'DELETE',
+                success: function() {
+                    location.reload(); // Reload the page to see the updated data
+                },
+                error: function(xhr) {
+                    alert('Error deleting domain: ' + xhr.responseJSON.error);
+                }
+            });
+        }
+    });
 </script>
-{% for i in domains %}
-<h1>{{i.domain}}</h1>
-{% endfor %}
-</body>
-</html>
+
 {% endblock %}
